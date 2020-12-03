@@ -1,4 +1,4 @@
-from PyQt5.QtGui import QFont, QMouseEvent
+from PyQt5.QtGui import QFont
 from PyQt5.QtWidgets import QPushButton
 
 
@@ -29,10 +29,7 @@ class LeftWidget(QPushButton):
 
     def mousePressEvent(self, event):
         super().mousePressEvent(event)
-        # self.setStyleSheet(
-        #     "background: blue;"
-        # )
         for button in (self.getDefinedButtons()):
             button.setStyleSheet(self.getStyle("#e4e6e8"))
         self.setStyleSheet(self.getStyle("#141518"))
-        print(event)
+

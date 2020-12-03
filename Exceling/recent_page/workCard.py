@@ -9,6 +9,7 @@ import os
 class Card(QFrame):
     def __init__(self, workTitle, workImage, workType, parent):
         super().__init__()
+        self.parent = parent
         self.title = workTitle
         self.image = workImage
         self.type = workType
@@ -35,6 +36,9 @@ class Card(QFrame):
             "border-radius: 10px;"
         )
 
+    def mousePressEvent(self, event):
+        self.parent.cardResponseClick()
+
 
 class Image(QLabel):
     def __init__(self, image):
@@ -46,7 +50,6 @@ class Image(QLabel):
     def imageStyle(self):
         folder = r"C:\Users\1234\Programming\python\pyqt\PYQT5_V2\Exceling\static\images"
         imgPath = os.path.join(folder, self.image + ".jpg")
-        print("this is the image path", imgPath)
         img = QPixmap(imgPath)
         return img.scaled(170, 110)
 
