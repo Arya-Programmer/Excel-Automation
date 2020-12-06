@@ -1,14 +1,18 @@
-from PyQt5.QtWidgets import QLabel, QTabWidget, QWidget, QVBoxLayout, QHBoxLayout
-
+from PyQt5.QtWidgets import QLabel, QTabWidget, QWidget, QVBoxLayout, QHBoxLayout, QFrame
+from .fields.fields import Fields
 
 # from preview import Preview
 
 
-class WorkDetail(QWidget):
-    def __init__(self, parent=None):
+class WorkDetail(QFrame):
+    def __init__(self, parent=None, index=0):
         super().__init__(parent)
+        self.parent = parent
+        self.index = index
         self.cardDetailLayout = QTabWidget(self)
         self.cardDetailLayout.tabBar().setObjectName("cardTab")
+        self.cardDetailLayout.setObjectName("cardTabPane")
+        self.setObjectName("cardWidget")
 
         self.initUI()
 
@@ -24,11 +28,26 @@ class WorkDetail(QWidget):
         self.cardDetailLayout.addTab(tab4, 'Add')
         self.cardDetailLayout.setCurrentIndex(0)
 
+
         self.setStyleSheet("""
-            #cardTab::pane{
+            QWidget#cardWidget *{
                 background: #141518;
             }
+            #cardTabPane::pane{
+                padding: 0;
+            }
+            #cardTab{
+                font-family: Arial, sans-serif;
+                font-weight: bold;
+                font-size: 12px;
+            }
             #cardTab::tab{
+                background: #e4e6e8;
+                height: 50px;
+                width: 150px;
+                color: white;
+            }
+            #cardTab::tab:selected{
                 background: #141518;
             }
         """)
@@ -52,12 +71,38 @@ class WorkDetail(QWidget):
         return main
 
     def fieldsClick(self):
-        main_layout = QVBoxLayout()
-        main_layout.addWidget(QLabel('page 3'))
-        main_layout.addStretch(5)
-        main = QWidget()
-        main.setLayout(main_layout)
-        return main
+        return Fields([
+            ("hello", "Hi", "DropDown"),
+            ("hello", "Hi", "DropDown"),
+            ("hello", "Hi", "DropDown"),
+            ("hello", "Hi", "DropDown"),
+            ("hello", "Hi", "DropDown"),
+            ("hello", "Hi", "DropDown"),
+            ("hello", "Hi", "DropDown"),
+            ("hello", "Hi", "DropDown"),
+            ("hello", "Hi", "DropDown"),
+            ("hello", "Hi", "DropDown"),
+            ("hello", "Hi", "DropDown"),
+            ("hello", "Hi", "DropDown"),
+            ("hello", "Hi", "DropDown"),
+            ("hello", "Hi", "DropDown"),
+            ("hello", "Hi", "DropDown"),
+            ("hello", "Hi", "DropDown"),
+            ("hello", "Hi", "DropDown"),
+            ("hello", "Hi", "DropDown"),
+            ("hello", "Hi", "DropDown"),
+            ("hello", "Hi", "DropDown"),
+            ("hello", "Hi", "Text"),
+            ("hello", "Hi", "DropDown"),
+            ("hello", "Hi", "DropDown"),
+            ("hello", "Hi", "DropDown"),
+            ("hello", "Hi", "DropDown"),
+            ("hello", "Hi", "DropDown"),
+            ("hello", "Hi", "DropDown"),
+            ("hello", "Hi", "DropDown"),
+            ("hello", "Hi", "DropDown"),
+            ("hello", "Hi", "DropDown"),
+        ], self.parent)
 
     def lastInputClick(self):
         main_layout = QVBoxLayout()

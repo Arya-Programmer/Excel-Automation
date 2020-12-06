@@ -2,11 +2,13 @@ from PyQt5 import QtCore
 from PyQt5.QtWidgets import *
 import sys
 from recent_page.recentWidget import RecentView
-from left_sidebar.SideBar import SideWidget
-from left_sidebar.LeftSideWidget import LeftWidget
+from left_sidebar.sideWidget import SideWidget
+from left_sidebar.leftWidget import LeftWidget
 from add_page.addWidget import AddView
 from recent_page.work_detail.workDetail import WorkDetail
-from logo.Logo import Frame
+from Exceling.logo.Logo import Frame
+
+from Exceling.add_page.addWork import AddWork
 
 
 class Window(QMainWindow):
@@ -21,12 +23,14 @@ class Window(QMainWindow):
         self.screenHeight = int(0.618 * self.screenWidth)
         self.resize(self.screenWidth, self.screenHeight)
 
-        # add all widgets
+        # add all left side widgets, LeftWidget defined in left_sidebar
         self.recentMenuButton = LeftWidget("Recent", self)
         self.addMenuButton = LeftWidget("Add", self)
         self.aboutMenuButton = LeftWidget("About", self)
+        # the logo of in the right side
         self.logo = Frame("image1", 150, 150, parent=self)
 
+        # on button click change the tabs
         self.recentMenuButton.clicked.connect(self.recentClick)
         self.addMenuButton.clicked.connect(self.addClick)
         self.aboutMenuButton.clicked.connect(self.aboutClick)
@@ -34,6 +38,7 @@ class Window(QMainWindow):
         # add tabs
         self.addTabs()
 
+        # done means: the design already fixed for for the defined number
         self.done = None
 
         self.initUI()
@@ -45,23 +50,30 @@ class Window(QMainWindow):
             """
         )
 
+        # SideWidget is the left side horizontal layout
+        # SideWidget is a QWidget appendWidget adds widget to the
+        # layout that is initialized in SideWidget
         self.leftWidget = SideWidget()
+        # appendWidget is a alternative of addWidget
         self.leftWidget.appendWidget(self.logo, "center")
         self.leftWidget.appendWidget(self.recentMenuButton)
         self.leftWidget.appendWidget(self.addMenuButton)
         self.leftWidget.appendWidget(self.aboutMenuButton)
+        # setAsLayout = setLayout
         self.leftWidget.setAsLayout()
 
+        # the right side horizontal bar
         self.rightSidebarInit()
 
+        # put both layout on a vertical layout in the main layout
         self.mainLayoutInit()
-
 
     def addTabs(self):
         self.tab1 = self.ui1(3)
         self.tab2 = self.ui2()
         self.tab3 = self.ui3()
-        self.tab4 = self.cardResponse()
+        self.tab4 = self.cardResponse(1)
+        self.tab5 = self.addResponse()
 
     # UI
     def rightSidebarInit(self):
@@ -73,6 +85,7 @@ class Window(QMainWindow):
         self.rightSidebar.addTab(self.tab2, '')
         self.rightSidebar.addTab(self.tab3, '')
         self.rightSidebar.addTab(self.tab4, '')
+        self.rightSidebar.addTab(self.tab5, '')
 
         self.rightSidebar.setCurrentIndex(0)
         self.rightSidebar.setStyleSheet('''
@@ -83,7 +96,6 @@ class Window(QMainWindow):
                             padding: 0px;
                        }
                        ''')
-
 
     def mainLayoutInit(self):
         self.main_layout = QHBoxLayout()
@@ -97,11 +109,13 @@ class Window(QMainWindow):
         main_widget = QWidget()
         main_widget.setLayout(self.main_layout)
         self.setCentralWidget(main_widget)
+
     # -----------------
     # buttons
 
     def recentClick(self):
         self.rightSidebar.setCurrentIndex(0)
+        self.resizeEvent("NO Event")
 
     def addClick(self):
         self.rightSidebar.setCurrentIndex(1)
@@ -112,19 +126,23 @@ class Window(QMainWindow):
     def cardResponseClick(self):
         self.rightSidebar.setCurrentIndex(3)
 
-
+    def addResponseClick(self):
+        self.rightSidebar.setCurrentIndex(4)
 
     # -----------------
     # pages
 
-    def cardResponse(self):
-        return WorkDetail()
+    def addResponse(self):
+        return AddWork(self)
 
-    def ui1(self, num: object) -> object:
+    def cardResponse(self, id):
+        return WorkDetail(self, id)
+
+    def ui1(self, num):
         return RecentView(num, self)
 
     def ui2(self):
-        return AddView()
+        return AddView(self)
 
     def ui3(self):
         main_layout = QVBoxLayout()
@@ -144,28 +162,31 @@ class Window(QMainWindow):
         self.mainLayoutInit()
 
     def resizeEvent(self, event):
-        super().resizeEvent(event)
-        print(self.width())
-        if self.width() > 1315 and self.done != 1315:
-            self.resizing(5)
-            self.update()
-            self.tab1.update()
-            self.done = 1315
-        elif 1315 > self.width() > 1100 and self.done != 1000:
-            self.resizing(4)
-            self.update()
-            self.tab1.update()
-            self.done = 1000
-        elif 1100 > self.width() > 870 and self.done != 900:
-            self.resizing(3)
-            self.update()
-            self.tab1.update()
-            self.done = 900
-        elif 870 > self.width() > 800 and self.done != 800:
-            self.resizing(2)
-            self.update()
-            self.tab1.update()
-            self.done = 800
+        try:
+            super().resizeEvent(event);
+        except Exception:
+            "do nothing";
+        if self.rightSidebar.currentIndex() == 0:
+            if self.width() > 1315 and self.done != 1315:
+                self.resizing(5)
+                self.update()
+                self.tab1.update()
+                self.done = 1315
+            elif 1315 > self.width() > 1100 and self.done != 1000:
+                self.resizing(4)
+                self.update()
+                self.tab1.update()
+                self.done = 1000
+            elif 1100 > self.width() > 870 and self.done != 900:
+                self.resizing(3)
+                self.update()
+                self.tab1.update()
+                self.done = 900
+            elif 870 > self.width() > 800 and self.done != 800:
+                self.resizing(2)
+                self.update()
+                self.tab1.update()
+                self.done = 800
 
 
 

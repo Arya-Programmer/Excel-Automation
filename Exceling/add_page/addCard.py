@@ -1,16 +1,17 @@
 from PyQt5.QtWidgets import QWidget, QLabel, QFrame, QVBoxLayout
 from PyQt5.QtGui import QPixmap
-from PyQt5 import QtCore, QtGui
+from PyQt5 import QtCore
 from PyQt5.QtGui import QFont
-import cv2
 import os
 
 
 class Card(QFrame):
-    def __init__(self, workTitle, workImage, parent):
+    def __init__(self, id, workTitle, workImage, parent):
         super().__init__()
+        self.parent = parent
         self.title = workTitle
         self.image = workImage
+        self.id = id
 
         children = QVBoxLayout(self)
         children.addWidget(Image(self.image))
@@ -23,15 +24,20 @@ class Card(QFrame):
         self.setLayout(
             children
         )
-        self.design()
+        self.setStyleSheet(self.getStyle())
 
-    def design(self):
-        self.setStyleSheet(
+    def getStyle(self):
+        return (
             "height: 210px;"
             "color: white;"
             "background: rgb(8, 8, 8);"
             "border-radius: 10px;"
         )
+
+    def mousePressEvent(self, event):
+        super().mousePressEvent(event)
+        self.parent.addResponseClick()
+
 
 
 class Image(QLabel):
@@ -44,7 +50,6 @@ class Image(QLabel):
     def imageStyle(self):
         folder = r"C:\Users\1234\Programming\python\pyqt\PYQT5_V2\Exceling\static\images"
         imgPath = os.path.join(folder, self.image + ".jpg")
-        print("this is the image path", imgPath)
         img = QPixmap(imgPath)
         if self.image == "Image3":
             return img.scaled(180, 130)
@@ -58,6 +63,6 @@ class Title(QLabel):
 
         self.setMaximumSize(QtCore.QSize(16777215, 80))
         self.setAlignment(QtCore.Qt.AlignCenter)
-        self.setFont(QFont("Arial", 20, 100))
+        self.setFont(QFont("Arial", 19, 100))
         self.setText(text)
 

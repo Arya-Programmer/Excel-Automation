@@ -5,12 +5,13 @@ from .addCard import Card
 
 
 class AddView(QFrame):
-    def __init__(self):
+    def __init__(self, parent):
         super().__init__()
+        self.parent = parent
         main_layout = QHBoxLayout(self)
-        main_layout.addWidget(Card("Add New Work", "image2", self))
+        main_layout.addWidget(Card(2, "Add New Work", "image2", self.parent))
         main_layout.addWidget(Title("OR"))
-        main_layout.addWidget(Card("Automate Work", "Image3", self))
+        main_layout.addWidget(Card(1, "Automate Work", "Image3", self.parent))
         self.setLayout(main_layout)
 
         self.setStyleSheet(
