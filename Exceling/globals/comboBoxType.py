@@ -1,8 +1,8 @@
-from PyQt5.QtWidgets import QComboBox, QLineEdit
 from Exceling.globals.variables import options
+from Exceling.globals.widgets import LineEdit, ComboBox
 
 
-class ComboBoxType(QComboBox):
+class ComboBoxType(ComboBox):
     def __init__(self, choice, itemToChange, mostWidgetNum, leastWidgetNum, parent=None):
         super().__init__()
         self.parent = parent
@@ -32,12 +32,12 @@ class ComboBoxType(QComboBox):
             item = self.parent.takeAt(self.itemToChange)
             widget = item.widget()
             widget.deleteLater()
-            lineEdit = QLineEdit()
+            lineEdit = LineEdit()
             lineEdit.setText(self.choices[0])
             self.parent.insertWidget(self.itemToChange, lineEdit)
 
 
-class AnswerCombo(QComboBox):
+class AnswerCombo(ComboBox):
     def __init__(self, currentIndex, itemToChange, mostWidgetNum, leastWidgetNum, comboBox, parent):
         super().__init__()
         self.typeCombo = comboBox
@@ -83,7 +83,7 @@ class AnswerCombo(QComboBox):
         self.num += 1
 
 
-class AddToChoiceCombo(QLineEdit):
+class AddToChoiceCombo(LineEdit):
     def __init__(self, parent, typeCombo):
         super().__init__()
         self.parent = parent

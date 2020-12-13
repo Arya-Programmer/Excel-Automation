@@ -1,11 +1,14 @@
 from PyQt5 import QtCore
 from PyQt5.QtCore import Qt
-from PyQt5.QtWidgets import QVBoxLayout, QHBoxLayout, QSpinBox, QLineEdit, QLabel, QWidget, QComboBox, \
-    QPushButton, QScrollArea, QCheckBox
+from PyQt5.QtWidgets import QVBoxLayout, QHBoxLayout, QSpinBox, QLineEdit, QWidget, QComboBox, QScrollArea, QCheckBox, \
+    QPushButton
 
+from Exceling.globals.widgets import ComboBox, Frame
 from Exceling.globals.comboBoxType import ComboBoxType, AnswerCombo
-
+from Exceling.backend.createExcel import CreateExcel
+from Exceling.globals.openFileDialog import FileDialogButton
 from Exceling.globals.variables import options
+from Exceling.globals.widgets import Label, PushButton, LineEdit
 
 
 class AddWork(QScrollArea):
@@ -14,11 +17,14 @@ class AddWork(QScrollArea):
         self.parent = parent
         self.setObjectName("mainScrollWidget")
         self.questions = [
+            ("Work Title:", "LineEdit()"),
+            ("Choose Folder:", "FileDialogButton('directory')"),
             ("Labels Number:", "QSpinBox()"),
-            ("Make First Column:", ["QComboBox()", ["Date", "Number", "Formula"]]),
-            ("Work With:", ["QComboBox()", ["Excel", "Word"]]),
+            ("Name WorkSheet:", ["ComboBox()", ["Month Name", "Date", "WeekDay", "Increment"]]),
+            ("Make First Column:", ["ComboBox()", ["Date", "Number", "Formula", "None"]]),
+            ("Work With:", ["ComboBox()", ["Excel", "Word"]]),
         ]
-        self.generateButton = QPushButton()
+        self.generateButton = PushButton()
         self.generateButton.setText("Generate")
         self.generateButton.pressed.connect(self.generate)
 
@@ -26,44 +32,22 @@ class AddWork(QScrollArea):
         self.addQuestions(self.questions)
         self.mainLayout.addWidget(self.generateButton)
 
-        mainWidget = QWidget()
+        mainWidget = Frame()
         mainWidget.setLayout(self.mainLayout)
-
-        mainWidget.setStyleSheet(self.getStyle())
-        mainWidget.setObjectName("addWork")
-        self.setStyleSheet(self.getStyle())
         # Scroll Area Properties
         self.setVerticalScrollBarPolicy(Qt.ScrollBarAlwaysOn)
         self.setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
         self.setWidgetResizable(True)
         self.setWidget(mainWidget)
+        self.setStyleSheet("border: none;")
 
         self.saveButtonExist = False
-        self.saveButton = QPushButton()
+        self.saveButton = PushButton()
         self.saveButton.setText("Save")
-        self.saveButton.setGeometry(QtCore.QRect(630, 530, 156, 23))
-        self.saveButton.clicked.connect(self.parent.addWork)
+        self.saveButton.clicked.connect(self.getFields)
 
     def getStyle(self):
         return ("""
-            QComboBox *,
-            QComboBox,
-            QLineEdit,
-            QSpinBox,
-            QCheckBox,
-            QPushButton{
-                background: white;
-            }
-            #addWork > QPushButton {
-                background: white;
-            }
-            QLabel{
-                color: white;
-                background: #141518;
-            }
-            #addWork > *, #addWork, #addWork > * > *{
-                background: #141518;
-            }
             #mainScrollWidget {
                 border: none;
             }
@@ -81,7 +65,7 @@ class AddWork(QScrollArea):
             else:
                 widget = eval(widgetStr)
 
-            label = QLabel(labelStr)
+            label = Label(labelStr)
 
             layout.addWidget(label)
             layout.addWidget(widget)
@@ -92,7 +76,7 @@ class AddWork(QScrollArea):
             self.mainLayout.addWidget(layoutWidget)
 
     def getValues(self):
-        items = [self.mainLayout.itemAt(index) for index in range(self.mainLayout.count() - 1)]
+        items = [self.mainLayout.itemAt(index) for index in range(len(self.questions))]
 
         answers = list()
         for item in items:
@@ -106,28 +90,32 @@ class AddWork(QScrollArea):
                     value = widget.text()
                 elif isinstance(widget, QComboBox):
                     value = widget.currentIndex()
+                    value = self.questions[items.index(item)][1][1][value]
                 elif isinstance(widget, QCheckBox):
                     value = widget.isChecked()
+                elif isinstance(widget, QPushButton):
+                    value = widget.getText()
 
                 answers.append(value)
         return answers
 
     def generate(self):
         answers = self.getValues()
-        if answers[1] == 0:
+
+        if answers[5] == "Excel":
             if not self.saveButtonExist:
                 self.saveButtonExist = True
                 self.mainLayout.insertWidget(len(self.questions)+1, self.saveButton)
 
-            for _ in range(answers[0]):
+            for _ in range(answers[2]):
                 layout = QHBoxLayout()
-                layout.addWidget(QLabel("Label Name:"))
+                layout.addWidget(Label("Label Name:"))
 
-                lineEdit = QLineEdit()
+                lineEdit = LineEdit()
                 layout.addWidget(lineEdit)
 
-                layout.addWidget(QLabel("Field:"))
-                lineEdit = QLineEdit()
+                layout.addWidget(Label("Field:"))
+                lineEdit = LineEdit()
                 layout.addWidget(lineEdit)
 
                 types = ["DropDown", "Text", "Check"]
@@ -135,12 +123,10 @@ class AddWork(QScrollArea):
                 for dataType in types:
                     comboBox.addItem(dataType)
 
-                layout.addWidget(QLabel("Type:"))
+                layout.addWidget(Label("Type:"))
                 layout.addWidget(comboBox)
 
                 self.secondRow(layout)
-
-
 
         else:
             return "Not Finished Command! Currently Working On!"
@@ -152,8 +138,8 @@ class AddWork(QScrollArea):
         firstRowWidget.setLayout(layout)
 
         secondRow = QHBoxLayout()
-        secondRow.addWidget(QLabel("Formula:"))
-        secondRow.addWidget(QLineEdit())
+        secondRow.addWidget(Label("Formula:"))
+        secondRow.addWidget(LineEdit())
 
         secondRowWidget = QWidget()
         secondRowWidget.setLayout(secondRow)
@@ -177,14 +163,18 @@ class AddWork(QScrollArea):
             item = item.children()
             self.getRowValues(item, values)
 
-        return values
+        excel = CreateExcel()
+        excel.addWork(values, self.getValues())
+        # the function runs on import, so I did this as solution
+        excel.createExcelFile()
 
     def getRowValues(self, items, values):
         items = [items[0].itemAt(i) for i in range(items[0].count())]
         tpl = tuple()
         for item in items:
             item = item.widget().children()
-            for widget in item[2::2]:
+            item = [item[0].itemAt(i).widget() for i in range(item[0].count())]
+            for widget in item:
                 if isinstance(widget, QSpinBox):
                     value = widget.value()
                     tpl += (value, )

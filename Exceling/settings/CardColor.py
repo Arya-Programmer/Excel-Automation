@@ -1,3 +1,7 @@
+from asyncio import sleep
+
+from Exceling.settings.changeColors import ChangeColors
+
 from PyQt5.QtWidgets import QLabel, QFrame, QVBoxLayout
 from PyQt5.QtGui import QPixmap
 from PyQt5 import QtCore, QtGui
@@ -8,28 +12,26 @@ from Exceling.globals.colors import ColorsBackend
 from Exceling.globals.variables import imageFolder, font
 
 
-class Card(QFrame):
-    def __init__(self, oid, id, workTitle, workImage, workType, parent, main):
-        super().__init__()
+class CardColor(QFrame):
+    def __init__(self, parent, main):
+        super().__init__(parent)
         self.setObjectName("card")
-        self.oid = oid
-        self.id = id
         self.main = main
-        self.parent = parent
-        self.title = workTitle
-        self.image = workImage
-        self.type = workType
+        self.title = "Title"
+        self.image = "Image1"
+        self.type = "Excel"
 
         bg, text, hover = ColorsBackend().cards()
+        print(bg, text)
 
         children = QVBoxLayout(self)
         children.addWidget(Image(self.image))
         children.addWidget(Title(self.title, text))
         children.addWidget(Type(self.type))
 
-        # children.setContentsMargins(30, 30, 30, 40)
         self.setMaximumSize(220, 300)
-        self.setMinimumSize(215, 290)
+        self.setMinimumSize(110, 130)
+        self.change = ChangeColors("cards()")
 
         self.setLayout(
             children
@@ -37,19 +39,19 @@ class Card(QFrame):
 
         self.setStyleSheet("""
             #card, #card>*{{
-                height: 210px;
                 color: {};
                 background: {};
                 border-radius: 10px;
             }}
         """.format(text, bg))
 
-    def mousePressEvent(self, event):
-        # print(self.oid)
-        # page = self.main.rightSidebar.children()[0].children()[self.oid]
-        # print(self.main.rightSidebar.indexOf(page))
-        self.main.cardResponseClick(self.id)
+    def mouseReleaseEvent(self, event):
+        if self.main != "dont work":
+            self.main.secondTab()
 
+    def mouseDoubleClickEvent(self, e):
+        if not self.change.isVisible():
+            self.change.show()
 
 class Image(QLabel):
     def __init__(self, image):
@@ -62,7 +64,7 @@ class Image(QLabel):
         folder = imageFolder
         imgPath = os.path.join(folder, self.image + ".png")
         img = QPixmap(imgPath)
-        return img.scaled(170, 110)
+        return img.scaled(120, 70)
 
 
 class Title(QLabel):
@@ -74,7 +76,7 @@ class Title(QLabel):
 
         self.setMaximumSize(QtCore.QSize(16777215, 80))
         self.setAlignment(QtCore.Qt.AlignCenter)
-        self.setFont(QFont(font, 20, 100))
+        self.setFont(QFont(font, 15, 100))
         self.setText(self.text)
         self.setToolTip(text)
         self.setStyleSheet(f"color: {color}")
@@ -83,7 +85,6 @@ class Title(QLabel):
         if len(self.text) > 10:
             self.text = self.text[:8] + "..."
 
-
 class Type(QLabel):
     def __init__(self, text, parent=None):
         super().__init__(parent)
@@ -91,13 +92,13 @@ class Type(QLabel):
 
         self.setMaximumSize((QtCore.QSize(16777215, 40)))
         self.setAlignment(QtCore.Qt.AlignCenter)
-        self.setFont(QFont(font, 15))
+        self.setFont(QFont(font, 10))
         self.setText(text)
 
         self.changeColor()
 
     def changeColor(self):
-
+        palette = QtGui.QPalette()
         color = "orange"
         if self.text.lower() == "excel":
             color = "green"
@@ -106,3 +107,4 @@ class Type(QLabel):
         elif self.text.lower() == "access":
             color = "#a01a29"
         self.setStyleSheet(f"color: {color};")
+

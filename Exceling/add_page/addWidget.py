@@ -1,10 +1,11 @@
 from PyQt5 import QtCore
 from PyQt5.QtGui import QFont
-from PyQt5.QtWidgets import QFrame, QHBoxLayout, QLabel
+from PyQt5.QtWidgets import QHBoxLayout, QLabel
 from .addCard import Card
+from ..globals.widgets import Frame
 
 
-class AddView(QFrame):
+class AddView(Frame):
     def __init__(self, parent):
         super().__init__()
         self.parent = parent
@@ -13,10 +14,6 @@ class AddView(QFrame):
         main_layout.addWidget(Title("OR"))
         main_layout.addWidget(Card(1, "Automate Work", "Image3", self.parent))
         self.setLayout(main_layout)
-
-        self.setStyleSheet(
-            "background-color: #141518;"
-        )
 
 
 class Title(QLabel):

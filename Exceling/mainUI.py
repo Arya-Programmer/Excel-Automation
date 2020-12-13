@@ -1,14 +1,18 @@
-from PyQt5 import QtCore
 from PyQt5.QtWidgets import *
 import sys
-from recent_page.recentWidget import RecentView
-from left_sidebar.sideWidget import SideWidget
-from left_sidebar.leftWidget import LeftWidget
-from add_page.addWidget import AddView
-from recent_page.work_detail.workDetail import WorkDetail
+
+from Exceling.add_page.addWidget import AddView
+from Exceling.backend.createExcel import CreateExcel
+from Exceling.globals.colors import ColorsBackend
+from Exceling.globals.widgets import Label, PushButton
+from Exceling.left_sidebar.leftWidget import LeftWidget
+from Exceling.left_sidebar.sideWidget import SideWidget
 from Exceling.logo.Logo import Frame
 
 from Exceling.add_page.addWork import AddWork
+from Exceling.recent_page.recentWidget import RecentView
+from Exceling.recent_page.work_detail.workDetail import WorkDetail
+from Exceling.settings.colorChanger import ColorChanger
 
 
 class Window(QMainWindow):
@@ -35,6 +39,7 @@ class Window(QMainWindow):
         self.addMenuButton.clicked.connect(self.addClick)
         self.aboutMenuButton.clicked.connect(self.aboutClick)
 
+        self.colorChanger = ColorChanger()
         # add tabs
         self.addTabs()
 
@@ -44,11 +49,11 @@ class Window(QMainWindow):
         self.initUI()
 
     def initUI(self):
+        background = ColorsBackend().window()
         self.setStyleSheet(
-            """
-            background: #2a292e;
-            """
+            "background: {};".format(background[0])
         )
+
 
         # SideWidget is the left side horizontal layout
         # SideWidget is a QWidget appendWidget adds widget to the
@@ -69,11 +74,10 @@ class Window(QMainWindow):
         self.mainLayoutInit()
 
     def addTabs(self):
-        self.tab1 = self.ui1(3)
+        self.tab1 = self.recentWidgetResponse(3)
         self.tab2 = self.ui2()
         self.tab3 = self.ui3()
-        self.tab4 = self.cardResponse(1)
-        self.tab5 = self.addResponse()
+        self.tab4 = self.addResponse()
 
     # UI
     def rightSidebarInit(self):
@@ -85,7 +89,12 @@ class Window(QMainWindow):
         self.rightSidebar.addTab(self.tab2, '')
         self.rightSidebar.addTab(self.tab3, '')
         self.rightSidebar.addTab(self.tab4, '')
-        self.rightSidebar.addTab(self.tab5, '')
+
+        excel = CreateExcel()
+        ids = excel.getId("WORK")
+        for id in list(ids):
+            widget = self.cardResponse(int(id[0]))
+            self.rightSidebar.addTab(widget, str(id[0]))
 
         self.rightSidebar.setCurrentIndex(0)
         self.rightSidebar.setStyleSheet('''
@@ -115,7 +124,6 @@ class Window(QMainWindow):
 
     def recentClick(self):
         self.rightSidebar.setCurrentIndex(0)
-        self.resizeEvent("NO Event")
 
     def addClick(self):
         self.rightSidebar.setCurrentIndex(1)
@@ -123,11 +131,11 @@ class Window(QMainWindow):
     def aboutClick(self):
         self.rightSidebar.setCurrentIndex(2)
 
-    def cardResponseClick(self):
+    def addResponseClick(self):
         self.rightSidebar.setCurrentIndex(3)
 
-    def addResponseClick(self):
-        self.rightSidebar.setCurrentIndex(4)
+    def cardResponseClick(self, widget):
+        self.rightSidebar.setCurrentIndex(widget + 4)
 
     # -----------------
     # pages
@@ -136,57 +144,24 @@ class Window(QMainWindow):
         return AddWork(self)
 
     def cardResponse(self, id):
-        return WorkDetail(self, id)
+        return WorkDetail(id, self)
 
-    def ui1(self, num):
-        return RecentView(num, self)
+    def recentWidgetResponse(self, num):
+        return RecentView(2, self)
 
     def ui2(self):
         return AddView(self)
 
     def ui3(self):
-        main_layout = QVBoxLayout()
-        main_layout.addWidget(QLabel('page 3'))
-        main_layout.addStretch(5)
-        main = QWidget()
-        main.setLayout(main_layout)
-        return main
+        self.button = PushButton()
+        self.button.setText("Click!")
+        self.button.clicked.connect(self.showWidget)
+        return self.button
 
-    def resizing(self, num):
-        if self.tab1.layout():
-            self.tab1.deleteLayout()
-        self.addTabs()
-        self.tab1 = self.ui1(num)
-        self.tab1.reSetLayout()
-        self.rightSidebarInit()
-        self.mainLayoutInit()
+    def showWidget(self):
+        if not self.colorChanger.isVisible():
+            self.colorChanger.show()
 
-    def resizeEvent(self, event):
-        try:
-            super().resizeEvent(event);
-        except Exception:
-            "do nothing";
-        if self.rightSidebar.currentIndex() == 0:
-            if self.width() > 1315 and self.done != 1315:
-                self.resizing(5)
-                self.update()
-                self.tab1.update()
-                self.done = 1315
-            elif 1315 > self.width() > 1100 and self.done != 1000:
-                self.resizing(4)
-                self.update()
-                self.tab1.update()
-                self.done = 1000
-            elif 1100 > self.width() > 870 and self.done != 900:
-                self.resizing(3)
-                self.update()
-                self.tab1.update()
-                self.done = 900
-            elif 870 > self.width() > 800 and self.done != 800:
-                self.resizing(2)
-                self.update()
-                self.tab1.update()
-                self.done = 800
 
 
 

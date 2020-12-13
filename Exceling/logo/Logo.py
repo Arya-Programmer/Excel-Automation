@@ -6,13 +6,13 @@ from PyQt5.QtWidgets import QLabel, QFrame, QVBoxLayout
 
 
 class Frame(QFrame):
-    def __init__(self, image, height, width, antialiasing=True, parent=None):
+    def __init__(self, image, height, width, left=10, top=10, right=10, bottom=45, antialiasing=True, parent=None):
         super().__init__()
         layout = QVBoxLayout()
         layout.addWidget(Logo(image, height, width, antialiasing, parent))
         self.setLayout(layout)
 
-        self.setContentsMargins(10, 10, 10, 45)
+        self.setContentsMargins(left, top, right, bottom)
 
 
 class Logo(QLabel):

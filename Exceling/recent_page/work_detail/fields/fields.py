@@ -1,32 +1,34 @@
 from PyQt5 import QtWidgets, QtCore
 from PyQt5.QtCore import Qt
-from PyQt5.QtWidgets import QWidget, QHBoxLayout, QLabel, QLineEdit, QComboBox, QVBoxLayout, QScrollArea
+from PyQt5.QtWidgets import QWidget, QHBoxLayout, QComboBox, QVBoxLayout, QScrollArea, QCheckBox, QSpinBox
 
+from Exceling.backend.createExcel import CreateExcel
 from Exceling.globals.variables import options
-from Exceling.globals.comboBoxType import ComboBoxType
+from Exceling.globals.comboBoxType import ComboBoxType, AnswerCombo
+from Exceling.globals.widgets import Label, LineEdit, DialogBox
 
 
 class Fields(QScrollArea):
-    def __init__(self, datas, parent=None):
-        super().__init__(parent)
-        self.setObjectName("scrollBar")
-        self.setStyleSheet(self.getStyle())
+    def __init__(self, datas, main, parent):
+        super().__init__()
+        self.main = main
         mainWidget = QWidget()
 
         self.mainLayout = QVBoxLayout()
-        for field, data, types in datas:
+        for oid, workTitle, fieldName, type, fieldData, formula in datas:
             widget = QWidget()
-            widget.setLayout(self.column(field, data, types))
+            widget.setLayout(self.column(fieldName, fieldData, type, formula))
             self.mainLayout.addWidget(widget)
 
-        self.buttonBox = QtWidgets.QDialogButtonBox()
+        self.title = workTitle
+
+        self.buttonBox = DialogBox()
         self.buttonBox.setGeometry(QtCore.QRect(630, 530, 156, 23))
         self.buttonBox.setStandardButtons(QtWidgets.QDialogButtonBox.Cancel | QtWidgets.QDialogButtonBox.Save)
-        self.buttonBox.setObjectName("dialogBox")
         self.mainLayout.addWidget(self.buttonBox)
 
-        self.buttonBox.accepted.connect(lambda: FieldsChanges(self))
-        self.buttonBox.rejected.connect(lambda: parent.recentClick())
+        self.buttonBox.accepted.connect(lambda: self.getChanges(parent))
+        self.buttonBox.rejected.connect(lambda: self.main.recentClick())
 
         mainWidget.setLayout(self.mainLayout)
 
@@ -35,83 +37,109 @@ class Fields(QScrollArea):
         self.setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
         self.setWidgetResizable(True)
         self.setWidget(mainWidget)
+        self.setStyleSheet("border: none;")
+        
+    def getChanges(self, parent):
+        FieldsChanges(self, parent)
 
-    def column(self, field, data, type):
-        layout = QHBoxLayout()
-        layout.addWidget(QLabel(field + ":"))
 
-        lineEdit = QLineEdit()
+    def column(self, field, data, type, formula):
+        verticalLayout = QVBoxLayout()
+        firstRow = QHBoxLayout()
+        firstRow.addWidget(Label(field + ":"))
+        lineEdit = LineEdit()
         lineEdit.setText(data)
-        layout.addWidget(lineEdit)
+        firstRow.addWidget(lineEdit)
 
-        layout.addWidget(QLabel("Type:"))
+        firstRow.addWidget(Label("Type:"))
 
-        comboBox = ComboBoxType(data, 1, 5, 4, layout)
+        # turn "('1', '2', '3', '4', '4')" into actual list, its a string
+        try:
+            data = list(eval(data))
+        except Exception:
+            "Nothing"
+
+        comboBox = ComboBoxType(data, 1, 5, 4, firstRow)
         for dataType in list(options.keys()):
             comboBox.addItem(dataType)
         comboBox.setCurrentIndex(options[type])
 
-        layout.addWidget(comboBox)
-        return layout
+        firstRowWidget = QWidget()
+        firstRowWidget.setLayout(firstRow)
 
-    def getStyle(self):
-        return ("""
-            #dialogBox *,
-            #scrollBar QComboBox *,
-            #scrollBar QComboBox,
-            #scrollBar QLineEdit,
-            #scrollBar QCheckBox{
-                background: #e4e6e8;
-            }
-            QLabel {
-                color: white;
-            }
-            #scrollBar{
-                border: none;
-            }
-        """)
+        firstRow.addWidget(comboBox)
+        verticalLayout.addWidget(firstRowWidget)
+
+        secondRowWidget = self.secondRow(formula)
+        verticalLayout.addWidget(secondRowWidget)
+        return verticalLayout
+
+    def secondRow(self, formula):
+        secondRow = QHBoxLayout()
+        label = Label("Formula:")
+        secondRow.addWidget(label)
+
+        lineEdit = LineEdit()
+        lineEdit.setText(formula)
+        secondRow.addWidget(lineEdit)
+
+        secondRowWidget = QWidget()
+        secondRowWidget.setLayout(secondRow)
+
+        return secondRowWidget
 
 
 class FieldsChanges:
-    def __init__(self, main):
-        self.main = main
-        self.layout = self.main.mainLayout
-        print(self.getChange())
+    def __init__(self, parent, grandparent):
+        self.grandparent = grandparent
+        self.parent = parent
+        self.layout = self.parent.mainLayout
+        fields = self.getChange()
+        excel = CreateExcel()
+        for name, option, type, formula in fields:
+            excel.insertField(self.parent.title, name, option, type, formula)
+        self.grandparent.updateAdd()
 
     def getChange(self):
-        items = [self.layout.itemAt(i) for i in range(self.layout.count() - 1)]
+        items = [self.layout.itemAt(i).widget().children()[0] for i in range(self.layout.count() - 1)]
 
-        lst = []
+        fields = list()
         for item in items:
-            layout = item.widget().children()
-            tpl = tuple()
-            tpl += (layout[1].text()[:-1],)
+            fields.append(self.getAllChanges(item))
 
-            if isinstance(layout[2], QComboBox):
-                tpl += (self.getCombo(layout[2], "choice"),)
-            elif isinstance(layout[2], QLineEdit):
-                tpl += (self.getLineEdit(layout[2]),)
+        return fields
 
-            if isinstance(layout[4], QComboBox):
-                tpl += (self.getCombo(layout[4], "type"),)
-            elif isinstance(layout[4], QLineEdit):
-                tpl += (self.getLineEdit(layout[4]),)
-
-            lst.append(tpl)
-
-        return lst
-
-    def getCombo(self, widget, skip):
-        if skip == "choice":
-            return [widget.itemText(item) for item in range(widget.count() - 1)]
-        if skip == "type":
-            return [widget.itemText(item) for item in range(widget.count())]
+    def getCombo(self, widget):
+        return str(tuple([widget.itemText(item) for item in range(widget.count() - 1)]))
 
     def getLineEdit(self, lineEdit):
-        return lineEdit.text()
+        return str(lineEdit.text())
 
     def getCheckButton(self, checkBtn):
-        if checkBtn.isChecked():
-            return "False"
-        elif not checkBtn.isChecked:
-            return "True"
+        return str(checkBtn.isChecked())
+
+    def getAllChanges(self, items):
+        items = [items.itemAt(i).widget().children()[0] for i in range(items.count())]
+        tpl = tuple()
+        for item in items:
+            for index in range(item.count()):
+                widget = item.itemAt(index).widget()
+                if isinstance(widget, Label) and index <= 1 and item.count() > 2:
+                    tpl += (widget.text()[:-1],)
+                elif isinstance(widget, QSpinBox):
+                    value = widget.value()
+                    tpl += (value,)
+                elif isinstance(widget, LineEdit):
+                    value = widget.text()
+                    tpl += (value,)
+                elif isinstance(widget, AnswerCombo):
+                    value = [widget.itemText(option) for option in range(widget.count() - 1)]
+                    tpl += (str(tuple(value)),)
+                elif isinstance(widget, QComboBox):
+                    value = widget.currentIndex()
+                    tpl += (list(options.keys())[value],)
+                elif isinstance(widget, QCheckBox):
+                    value = widget.isChecked()
+                    tpl += (value,)
+
+        return tpl
