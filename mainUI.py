@@ -1,3 +1,4 @@
+from PyQt5.QtGui import QIcon
 from PyQt5.QtWidgets import *
 import sys
 
@@ -15,9 +16,21 @@ from Exceling.recent_page.work_detail.workDetail import WorkDetail
 from Exceling.settings.colorChanger import ColorChanger
 
 
+try:
+    # Include in try/except block if you're also targeting Mac/Linux
+    from PyQt5.QtWinExtras import QtWin
+    myappid = 'mycompany.myproduct.subproduct.version'
+    QtWin.setCurrentProcessExplicitAppUserModelID(myappid)
+except ImportError:
+    pass
+
+
 class Window(QMainWindow):
     def __init__(self):
         super().__init__()
+
+        # set the Icon
+        self.setWindowIcon(QIcon('Icon.ico')) 
 
         # set the title of main window
         self.setWindowTitle('Exceling')
@@ -39,8 +52,8 @@ class Window(QMainWindow):
         self.addMenuButton.clicked.connect(self.addClick)
         self.aboutMenuButton.clicked.connect(self.aboutClick)
 
-        self.colorChanger = ColorChanger()
         # add tabs
+        self.colorChanger = ColorChanger()
         self.addTabs()
 
         # done means: the design already fixed for for the defined number
@@ -160,6 +173,7 @@ class Window(QMainWindow):
 
     def showWidget(self):
         if not self.colorChanger.isVisible():
+            self.colorChanger = ColorChanger()
             self.colorChanger.show()
 
 
