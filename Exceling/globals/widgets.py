@@ -62,8 +62,8 @@ class PushButton(QPushButton):
 
 
 class DialogBox(QDialogButtonBox):
-    def __init__(self):
-        super().__init__()
+    def __init__(self, parent=None):
+        super().__init__(parent)
         self.setObjectName("dialogBox")
         bg1, bg2, t1, t2, h1, h2 = ColorsBackend().dialogboxes()
         self.setStyleSheet("""

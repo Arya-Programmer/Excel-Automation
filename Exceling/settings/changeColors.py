@@ -1,5 +1,6 @@
 import sys
 
+from matplotlib.colors import is_color_like
 from PyQt5 import QtWidgets, QtCore
 from PyQt5.QtCore import QRect
 from PyQt5.QtGui import QIcon, QPixmap, QColor
@@ -10,10 +11,12 @@ from Exceling.globals.widgets import Label, LineEdit, DialogBox
 
 
 class ChangeColors(QWidget):
-    def __init__(self, function):
+    def __init__(self, function, parent=None):
         super().__init__()
         self.setWindowModality(QtCore.Qt.ApplicationModal)
         self.function = function
+        self.parent = parent
+
         self.mainLayout = QVBoxLayout()
         self.setLayout(self.mainLayout)
         windowColor = ColorsBackend().window()[0]
@@ -61,6 +64,10 @@ class ChangeColors(QWidget):
                         tpl += (value,)
 
         eval("ColorsBackend().insertInto" + self.function[:-2].capitalize() + f"(*{tpl})")
+        if self.parent is not None:
+            self.parent.setupUi(self.parent)
+            self.parent.repaint()
+            self.parent.update()
         self.close()
 
 
@@ -69,26 +76,38 @@ class LineEditColor(LineEdit):
     def __init__(self, color):
         super().__init__()
         self.setText(color)
+        self.dialog = QColorDialog()
+        self.dialog.setWindowModality(QtCore.Qt.ApplicationModal)
 
+        self.textChanged.connect(lambda: self.textAltered())
         self.getIcon(color)
 
     def mouseDoubleClickEvent(self, event):
-        color = self.showDialog()
+        self.showDialog()
+
+    def changeColor(self, color):
         self.removeAction(self.action)
         self.getIcon(color)
         self.setText(color)
 
+    def textAltered(self):
+        newColor = self.text()
+        if is_color_like(newColor):
+            self.removeAction(self.action)
+            self.getIcon(newColor)
+
     def showDialog(self):
-        color = QColorDialog()
-        color = color.getColor().name()
-        return color
+        self.dialog.setCurrentColor(QColor(self.text()))
+        self.dialog.show()
+        self.dialog.accepted.connect(lambda: self.changeColor(self.dialog.selectedColor().name()))
+        self.dialog.rejected.connect(lambda: self.dialog.close())
 
     def getIcon(self, color):
         pixmap = QPixmap(100, 100)
         pixmap.fill(QColor(color))
         icon = QIcon(pixmap)
         self.action = self.addAction(icon, QLineEdit.TrailingPosition)
-        self.action.triggered.connect(lambda: self.mouseDoubleClickEvent(""))
+        self.action.triggered.connect(lambda: self.mouseDoubleClickEvent(''))
 
 
 

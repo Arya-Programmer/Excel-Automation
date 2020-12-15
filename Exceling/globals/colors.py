@@ -4,6 +4,10 @@ import sqlite3 as db
 class ColorsBackend:
     def __init__(self):
         self.connect()
+        noTable = False
+        tablesDontExist = len(self.c.execute("SELECT name FROM sqlite_master").fetchall()) < 1
+        if tablesDontExist:
+            noTable=True
         self.c.execute("CREATE TABLE IF NOT EXISTS window(background TEXT)")
         self.c.execute("CREATE TABLE IF NOT EXISTS labels(text TEXT)")
         self.c.execute("CREATE TABLE IF NOT EXISTS buttons(background TEXT, text TEXT, hover TEXT)")
@@ -12,8 +16,19 @@ class ColorsBackend:
         self.c.execute("CREATE TABLE IF NOT EXISTS cards(background TEXT, text TEXT, hover TEXT)")
         self.c.execute("CREATE TABLE IF NOT EXISTS dialogboxes(bg1 TEXT, bg2 TEXT, t1 TEXT, t2 TEXT, hover1 TEXT, hover2 TEXT)")
         self.c.execute("CREATE TABLE IF NOT EXISTS sidebar(bg TEXT, text TEXT, focused TEXT, hover TEXT)")
+        if noTable:
+            self.initialize()
         self.disconnect()
 
+    def initialize(self):
+        self.insertIntoWindow()
+        self.insertIntoCards()
+        self.insertIntoTabs()
+        self.insertIntoLabels()
+        self.insertIntoButtons()
+        self.insertIntoSidebar()
+        self.insertIntoInputfields()
+        self.insertIntoDialogboxes()
     # noinspection PyAttributeOutsideInit
     def connect(self):
         self.conn = db.connect("Colors.db")
@@ -22,7 +37,7 @@ class ColorsBackend:
     def disconnect(self):
         self.conn.close()
 
-    def insertIntoWindow(self, background="#e4e6e8"):
+    def insertIntoWindow(self, background="grey"):
         self.connect()
         self.c.execute(f"INSERT INTO window VALUES('{background}')")
         self.conn.commit()

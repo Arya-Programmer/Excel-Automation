@@ -1,17 +1,23 @@
-from PyQt5.QtWidgets import QWidget, QLabel, QFrame, QVBoxLayout
+from PyQt5.QtWidgets import QLabel, QFrame, QVBoxLayout
 from PyQt5.QtGui import QPixmap
 from PyQt5 import QtCore
 from PyQt5.QtGui import QFont
 import os
 
+from ..globals.colors import ColorsBackend
+from ..globals.variables import font
+
 
 class Card(QFrame):
     def __init__(self, id, workTitle, workImage, parent):
         super().__init__()
+        self.setObjectName("card")
         self.parent = parent
         self.title = workTitle
         self.image = workImage
         self.id = id
+
+        bg, text, hover = ColorsBackend().cards()
 
         children = QVBoxLayout(self)
         children.addWidget(Image(self.image))
@@ -24,15 +30,14 @@ class Card(QFrame):
         self.setLayout(
             children
         )
-        self.setStyleSheet(self.getStyle())
 
-    def getStyle(self):
-        return (
-            "height: 210px;"
-            "color: white;"
-            "background: rgb(8, 8, 8);"
-            "border-radius: 10px;"
-        )
+        self.setStyleSheet("""
+            #card, #card>*{{
+                color: {};
+                background: {};
+                border-radius: 10px;
+            }}
+        """.format(text, bg))
 
     def mousePressEvent(self, event):
         super().mousePressEvent(event)
@@ -63,6 +68,6 @@ class Title(QLabel):
 
         self.setMaximumSize(QtCore.QSize(16777215, 80))
         self.setAlignment(QtCore.Qt.AlignCenter)
-        self.setFont(QFont("Arial", 19, 100))
+        self.setFont(QFont(font, 19, 100))
         self.setText(text)
 

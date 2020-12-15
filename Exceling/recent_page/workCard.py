@@ -1,6 +1,6 @@
 from PyQt5.QtWidgets import QLabel, QFrame, QVBoxLayout
 from PyQt5.QtGui import QPixmap
-from PyQt5 import QtCore, QtGui
+from PyQt5 import QtCore
 from PyQt5.QtGui import QFont
 import os
 

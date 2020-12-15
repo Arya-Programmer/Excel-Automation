@@ -2,6 +2,7 @@ from PyQt5 import QtCore
 from PyQt5.QtGui import QFont
 from PyQt5.QtWidgets import QHBoxLayout, QLabel
 from .addCard import Card
+from ..globals.variables import font
 from ..globals.widgets import Frame
 
 
@@ -22,7 +23,7 @@ class Title(QLabel):
 
         self.setMaximumSize(QtCore.QSize(16777215, 80))
         self.setAlignment(QtCore.Qt.AlignCenter)
-        self.setFont(QFont("Arial", 40, 200))
+        self.setFont(QFont(font, 40, 200))
         self.setText(text)
 
 

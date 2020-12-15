@@ -28,11 +28,6 @@ class LastInput(QScrollArea):
         self.buttonBox = DialogBox()
         self.buttonBox.setGeometry(QtCore.QRect(630, 530, 156, 23))
         self.buttonBox.setStandardButtons(QtWidgets.QDialogButtonBox.Cancel | QtWidgets.QDialogButtonBox.Save)
-        self.buttonBox.setObjectName("dialogBox")
-        self.buttonBox.setStyleSheet(
-            f"color: {self.widgetText}"
-            f"background: {self.widgetBack}"
-        )
 
         self.mainLayout.addWidget(self.buttonBox)
 

@@ -8,6 +8,9 @@ import excel2img
 
 
 # noinspection PyMethodMayBeStatic
+from ..globals.messageBox import MessageBox
+
+
 class CreateExcel(Excel):
     def __init__(self, values=None):
         super().__init__()
@@ -53,7 +56,7 @@ class CreateExcel(Excel):
         try:
             excel2img.export_img(filePath, f"static/images/{title}.png", sheetTitle, None)
         except Exception:
-            print("Preview cannot update to fix this restart program")
+            MessageBox("Warning", "Preview cannot update to fix this restart program", "Preview Warning")
 
     def addToExcel(self, fields, oid):
         # getting work data and filePath
